@@ -1,5 +1,14 @@
 # Hotel reservation backend
 
+## Project outline
+
+- users -> book room from the hotel
+- admins -> check reservations/bookings
+- Authentication/Authentication -> JWT
+- hotels -> CRUD API -> JSON
+- rooms -> CRUD API -> JSON
+- scripts -> database management -> seeding database, migrations...
+
 ## Resources
 
 ### MongoDB driver
