@@ -12,7 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-const dbUri = "mongodb://localhost:27017"
+// TODO: continue on create new hotel handler file
 
 var fiberConfig = fiber.Config{
 	ErrorHandler: func(ctx *fiber.Ctx, err error) error {
@@ -27,7 +27,7 @@ func main() {
 	listenAddr := flag.String("listenAddr", ":8080", "The listen address of the API server")
 	flag.Parse()
 
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(dbUri))
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(db.DBURI))
 	if err != nil {
 		log.Fatal(err)
 	}
