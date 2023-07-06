@@ -15,6 +15,11 @@ type UserHandler struct {
 	userStore db.UserStore
 }
 
+type AuthParams struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 func NewUserHandler(userStore db.UserStore) *UserHandler {
 	return &UserHandler{
 		userStore: userStore,
