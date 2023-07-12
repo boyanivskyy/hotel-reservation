@@ -45,15 +45,17 @@ func main() {
 	)
 	// handlers init
 	var (
-		authHandler  = api.NewAuthHandler(userStore)
-		userHandler  = api.NewUserHandler(userStore)
-		hotelHandler = api.NewHotelHandler(store)
-		roomHandler  = api.NewRoomHandler(store)
+		authHandler    = api.NewAuthHandler(userStore)
+		userHandler    = api.NewUserHandler(userStore)
+		hotelHandler   = api.NewHotelHandler(store)
+		roomHandler    = api.NewRoomHandler(store)
+		bookingHandler = api.NewBookingHandler(store)
 	)
 
 	app := fiber.New(fiberConfig)
 	auth := app.Group("/api")
 	apiv1 := app.Group("/api/v1", middleware.JWTAuthentication(userStore))
+	admin := apiv1.Group("/admin", middleware.AdminAuth)
 
 	// auth handlers
 	auth.Post("/auth", authHandler.HandleAuthenticate)
@@ -70,8 +72,16 @@ func main() {
 	apiv1.Get("/hotel/:id", hotelHandler.HandleGetHotel)
 	apiv1.Get("/hotel/:id/rooms", hotelHandler.HandleGetRooms)
 
+	// room handler
 	apiv1.Get("/room", roomHandler.HandleGetRooms)
 	apiv1.Post("/room/:id/book", roomHandler.HandleBookRoom)
+	// TODO: cancel a booking
+
+	// booking handler
+	apiv1.Get("/booking/:id", bookingHandler.HandleGetBooking)
+
+	// admin handlers
+	admin.Get("/booking", bookingHandler.HandleGetBookings)
 
 	log.Fatal(app.Listen(*listenAddr))
 }

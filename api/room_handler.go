@@ -47,7 +47,6 @@ func (h *RoomHandler) HandleGetRooms(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-
 	return c.JSON(rooms)
 }
 
@@ -56,11 +55,9 @@ func (h *RoomHandler) HandleBookRoom(c *fiber.Ctx) error {
 	if err := c.BodyParser(&params); err != nil {
 		return err
 	}
-
 	if err := params.validate(); err != nil {
 		return err
 	}
-
 	roomOId, err := primitive.ObjectIDFromHex(c.Params("id"))
 	if err != nil {
 		return err
@@ -72,19 +69,16 @@ func (h *RoomHandler) HandleBookRoom(c *fiber.Ctx) error {
 			Msg:  "internal server error",
 		})
 	}
-
 	ok, err = h.isRoomAvailableForBooking(c.Context(), roomOId, params)
 	if err != nil {
 		return err
 	}
-
 	if !ok {
 		return c.Status(http.StatusBadRequest).JSON(genericResp{
 			Type: "error",
 			Msg:  fmt.Sprintf("room %s is already booked", c.Params("id")),
 		})
 	}
-
 	booking := types.Booking{
 		RoomId:     roomOId,
 		UserId:     user.Id,
@@ -92,12 +86,10 @@ func (h *RoomHandler) HandleBookRoom(c *fiber.Ctx) error {
 		FromDate:   params.FromDate,
 		TillDate:   params.TillDate,
 	}
-
 	inserted, err := h.store.Booking.InsertBooking(c.Context(), &booking)
 	if err != nil {
 		return err
 	}
-
 	return c.JSON(inserted)
 }
 
