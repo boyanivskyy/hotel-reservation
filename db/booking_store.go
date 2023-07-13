@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/boyanivskyy/hotel-reservation/types"
 	"go.mongodb.org/mongo-driver/bson"
@@ -13,6 +14,7 @@ type BookingStore interface {
 	InsertBooking(ctx context.Context, booking *types.Booking) (*types.Booking, error)
 	GetBookings(ctx context.Context, filter bson.M) ([]*types.Booking, error)
 	GetBooking(ctx context.Context, bookingId string) (*types.Booking, error)
+	UpdateBooking(context.Context, string, bson.M) error
 }
 
 type MongoBookingStore struct {
@@ -27,6 +29,19 @@ func NewMongoBookingStore(client *mongo.Client) *MongoBookingStore {
 		client: client,
 		coll:   client.Database(DBNAME).Collection("bookings"),
 	}
+}
+
+func (s *MongoBookingStore) UpdateBooking(ctx context.Context, bookingId string, update bson.M) error {
+	bookingOid, err := primitive.ObjectIDFromHex(bookingId)
+	if err != nil {
+		return err
+	}
+	m := bson.M{
+		"$set": update,
+	}
+	fmt.Println(bookingOid)
+	_, err = s.coll.UpdateByID(ctx, bookingOid, m)
+	return err
 }
 
 func (s *MongoBookingStore) InsertBooking(ctx context.Context, booking *types.Booking) (*types.Booking, error) {
