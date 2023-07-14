@@ -33,7 +33,7 @@ func Test_HandlePostUser(t *testing.T) {
 
 	resp, err := app.Test(req)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	user := types.User{}
 	json.NewDecoder(resp.Body).Decode(&user)

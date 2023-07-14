@@ -2,7 +2,6 @@ package api
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -38,9 +37,6 @@ func TestAuthenticateSuccess(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	users, _ := tdb.User.GetUsers(context.TODO())
-	fmt.Println("users", users)
 
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("expected http status of 200 but got %d", resp.StatusCode)
