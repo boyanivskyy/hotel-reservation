@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/boyanivskyy/hotel-reservation/types"
 	"go.mongodb.org/mongo-driver/bson"
@@ -39,7 +38,6 @@ func (s *MongoBookingStore) UpdateBooking(ctx context.Context, bookingId string,
 	m := bson.M{
 		"$set": update,
 	}
-	fmt.Println(bookingOid)
 	_, err = s.coll.UpdateByID(ctx, bookingOid, m)
 	return err
 }
