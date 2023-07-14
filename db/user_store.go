@@ -96,6 +96,7 @@ func (store *MongoUserStore) GetUsers(ctx context.Context) ([]*types.User, error
 }
 
 func (store *MongoUserStore) InsertUser(ctx context.Context, user *types.User) (*types.User, error) {
+	// TODO: check if exist by email???
 	res, err := store.coll.InsertOne(ctx, user)
 	if err != nil {
 		return nil, err
@@ -115,9 +116,9 @@ func (store *MongoUserStore) GetUserByEmail(ctx context.Context, email string) (
 	return &user, nil
 }
 
-func NewMongoUserStore(client *mongo.Client) *MongoUserStore {
+func NewMongoUserStore(client *mongo.Client, dbName string) *MongoUserStore {
 	return &MongoUserStore{
 		client: client,
-		coll:   client.Database(DBNAME).Collection(userColl),
+		coll:   client.Database(dbName).Collection(userColl),
 	}
 }
