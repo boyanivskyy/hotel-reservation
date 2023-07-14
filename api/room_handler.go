@@ -45,7 +45,7 @@ func NewRoomHandler(store *db.Store) *RoomHandler {
 func (h *RoomHandler) HandleGetRooms(c *fiber.Ctx) error {
 	rooms, err := h.store.Room.GetRooms(c.Context(), bson.M{})
 	if err != nil {
-		return err
+		return ErrorResourceNotFound()
 	}
 	return c.JSON(rooms)
 }
@@ -53,21 +53,18 @@ func (h *RoomHandler) HandleGetRooms(c *fiber.Ctx) error {
 func (h *RoomHandler) HandleBookRoom(c *fiber.Ctx) error {
 	params := BookRoomParams{}
 	if err := c.BodyParser(&params); err != nil {
-		return err
+		return ErrorBadRequest()
 	}
 	if err := params.validate(); err != nil {
 		return err
 	}
 	roomOId, err := primitive.ObjectIDFromHex(c.Params("id"))
 	if err != nil {
-		return err
+		return ErrorInvalidId()
 	}
 	user, ok := c.Context().Value("user").(*types.User)
 	if !ok {
-		return c.Status(http.StatusInternalServerError).JSON(genericResp{
-			Type: "error",
-			Msg:  "internal server error",
-		})
+		return ErrorUnathorized()
 	}
 	ok, err = h.isRoomAvailableForBooking(c.Context(), roomOId, params)
 	if err != nil {

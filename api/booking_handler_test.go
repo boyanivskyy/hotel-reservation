@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/boyanivskyy/hotel-reservation/api/middleware"
 	"github.com/boyanivskyy/hotel-reservation/db"
 	"github.com/boyanivskyy/hotel-reservation/db/fixtures"
 	"github.com/boyanivskyy/hotel-reservation/types"
@@ -20,13 +19,15 @@ func TestUserGetBooking(t *testing.T) {
 	defer db.tearDown(t)
 
 	var (
-		nonAuthUser    = fixtures.AddUser(db.Store, "nonauth", "nonauth", false)
-		user           = fixtures.AddUser(db.Store, "test", "test", false)
-		hotel          = fixtures.AddHotel(db.Store, "bar hotel", "a", 4, nil)
-		room           = fixtures.AddRoom(db.Store, "small", true, 99.99, hotel.Id)
-		booking        = fixtures.AddBooking(db.Store, user.Id, room.Id, 2, time.Now(), time.Now().AddDate(0, 0, 2))
-		app            = fiber.New()
-		api            = app.Group("/", middleware.JWTAuthentication(db.User))
+		nonAuthUser = fixtures.AddUser(db.Store, "nonauth", "nonauth", false)
+		user        = fixtures.AddUser(db.Store, "test", "test", false)
+		hotel       = fixtures.AddHotel(db.Store, "bar hotel", "a", 4, nil)
+		room        = fixtures.AddRoom(db.Store, "small", true, 99.99, hotel.Id)
+		booking     = fixtures.AddBooking(db.Store, user.Id, room.Id, 2, time.Now(), time.Now().AddDate(0, 0, 2))
+		app         = fiber.New(fiber.Config{
+			ErrorHandler: ErrorHandler,
+		})
+		api            = app.Group("/", JWTAuthentication(db.User))
 		bookingHandler = NewBookingHandler(db.Store)
 	)
 
@@ -71,19 +72,21 @@ func TestAdminGetBookings(t *testing.T) {
 	defer db.tearDown(t)
 
 	var (
-		user           = fixtures.AddUser(db.Store, "test", "test", false)
-		_              = user
-		adminUser      = fixtures.AddUser(db.Store, "admin", "admin", true)
-		hotel          = fixtures.AddHotel(db.Store, "bar hotel", "a", 4, nil)
-		room           = fixtures.AddRoom(db.Store, "small", true, 99.99, hotel.Id)
-		booking        = fixtures.AddBooking(db.Store, adminUser.Id, room.Id, 2, time.Now(), time.Now().AddDate(0, 0, 2))
-		app            = fiber.New()
-		adminGroup     = app.Group("/", middleware.JWTAuthentication(db.User), middleware.AdminAuth)
+		user      = fixtures.AddUser(db.Store, "test", "test", false)
+		_         = user
+		adminUser = fixtures.AddUser(db.Store, "admin", "admin", true)
+		hotel     = fixtures.AddHotel(db.Store, "bar hotel", "a", 4, nil)
+		room      = fixtures.AddRoom(db.Store, "small", true, 99.99, hotel.Id)
+		booking   = fixtures.AddBooking(db.Store, adminUser.Id, room.Id, 2, time.Now(), time.Now().AddDate(0, 0, 2))
+		app       = fiber.New(fiber.Config{
+			ErrorHandler: ErrorHandler,
+		})
+		adminGroup     = app.Group("/", JWTAuthentication(db.User), AdminAuth)
 		bookingHandler = NewBookingHandler(db.Store)
 	)
 
-	adminGroup.Get("/bookings", bookingHandler.HandleGetBookings)
-	req := httptest.NewRequest(http.MethodGet, "/bookings", nil)
+	adminGroup.Get("/", bookingHandler.HandleGetBookings)
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Header.Add("X-Api-Token", CreateTokenFromUser(adminUser))
 	resp, err := app.Test(req)
 	if err != nil {
@@ -110,12 +113,13 @@ func TestAdminGetBookings(t *testing.T) {
 	}
 
 	// NOTE: test when user is not admin and can not access the endpoint
+	req = httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Header.Add("X-Api-Token", CreateTokenFromUser(user))
 	resp, err = app.Test(req)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if resp.StatusCode == http.StatusOK {
-		t.Fatalf("expeceted not status 200, got %d", resp.StatusCode)
+	if resp.StatusCode != http.StatusUnauthorized {
+		t.Fatalf("expeceted status 401 unathorized, got %d", resp.StatusCode)
 	}
 }

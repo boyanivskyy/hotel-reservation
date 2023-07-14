@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"net/http"
 
 	"github.com/boyanivskyy/hotel-reservation/db"
 	"github.com/boyanivskyy/hotel-reservation/types"
@@ -25,17 +26,17 @@ func (h *UserHandler) HandlePutUser(c *fiber.Ctx) error {
 	userId := c.Params("id")
 	oId, err := primitive.ObjectIDFromHex(userId)
 	if err != nil {
-		return err
+		return ErrorInvalidId()
 	}
 
 	params := types.UpdateUserParams{}
 	if err := c.BodyParser(&params); err != nil {
-		return err
+		return ErrorBadRequest()
 	}
 
 	filter := bson.M{"_id": oId}
 	if err = h.userStore.UpdateUser(c.Context(), filter, params); err != nil {
-		return err
+		return ErrorResourceNotFound()
 	}
 
 	return c.JSON(map[string]string{
@@ -48,7 +49,7 @@ func (h *UserHandler) HandleDeleteUser(c *fiber.Ctx) error {
 
 	err := h.userStore.DeleteUser(c.Context(), userId)
 	if err != nil {
-		return err
+		return ErrorInvalidId()
 	}
 
 	return c.JSON(map[string]string{
@@ -59,20 +60,20 @@ func (h *UserHandler) HandleDeleteUser(c *fiber.Ctx) error {
 func (h *UserHandler) HandlePostUser(c *fiber.Ctx) error {
 	params := types.CreateUserParams{}
 	if err := c.BodyParser(&params); err != nil {
-		return err
+		return ErrorBadRequest()
 	}
 
 	if errors := params.Validate(); len(errors) > 0 {
-		return c.Status(400).JSON(errors)
+		return c.Status(http.StatusBadRequest).JSON(errors)
 	}
 
 	user, err := types.NewUserFromParams(params)
 	if err != nil {
-		return err
+		return ErrorBadRequest()
 	}
 	user, err = h.userStore.InsertUser(c.Context(), user)
 	if err != nil {
-		return err
+		return ErrorBadRequest()
 	}
 
 	return c.JSON(user)
@@ -84,11 +85,9 @@ func (h *UserHandler) HandleGetUserById(c *fiber.Ctx) error {
 	user, err := h.userStore.GetUserById(c.Context(), id)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return c.Status(400).JSON(map[string]string{
-				"error": "Not found",
-			})
+			return ErrorResourceNotFound()
 		}
-		return err
+		return ErrorResourceNotFound()
 	}
 	return c.JSON(user)
 }
@@ -96,7 +95,7 @@ func (h *UserHandler) HandleGetUserById(c *fiber.Ctx) error {
 func (h *UserHandler) HandleGetUsers(c *fiber.Ctx) error {
 	users, err := h.userStore.GetUsers(c.Context())
 	if err != nil {
-		return err
+		return ErrorResourceNotFound()
 	}
 
 	return c.JSON(users)
