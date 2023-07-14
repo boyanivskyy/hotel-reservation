@@ -11,44 +11,24 @@ import (
 	"testing"
 
 	"github.com/boyanivskyy/hotel-reservation/db"
-	"github.com/boyanivskyy/hotel-reservation/types"
+	"github.com/boyanivskyy/hotel-reservation/db/fixtures"
 	"github.com/gofiber/fiber/v2"
 )
 
-func insertTestUser(t *testing.T, userStore db.UserStore) *types.User {
-	user, err := types.NewUserFromParams(types.CreateUserParams{
-		Email:     "test@test.com",
-		FirstName: "test1",
-		LastName:  "test2",
-		Password:  "testpass",
-	})
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	_, err = userStore.InsertUser(context.TODO(), user)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	return user
-}
-
 func TestAuthenticateSuccess(t *testing.T) {
-	tdb := setup(t)
+	tdb := setup(t, db.TestDBNAME)
 	defer tdb.tearDown(t)
 
-	insertedUser := insertTestUser(t, tdb.UserStore)
+	insertedUser := fixtures.AddUser(tdb.Store, "test", "test", false)
 
 	app := fiber.New()
 
-	authHandler := NewAuthHandler(tdb.UserStore)
+	authHandler := NewAuthHandler(tdb.User)
 	app.Post("/authenticate", authHandler.HandleAuthenticate)
 
 	params := AuthParams{
 		Email:    "test@test.com",
-		Password: "testpass",
+		Password: "test_test",
 	}
 	b, _ := json.Marshal(params)
 
@@ -58,6 +38,9 @@ func TestAuthenticateSuccess(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	users, _ := tdb.User.GetUsers(context.TODO())
+	fmt.Println("users", users)
 
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("expected http status of 200 but got %d", resp.StatusCode)
@@ -83,14 +66,14 @@ func TestAuthenticateSuccess(t *testing.T) {
 }
 
 func TestAuthenticationWithWrongPasswordFailure(t *testing.T) {
-	tdb := setup(t)
+	tdb := setup(t, db.TestDBNAME)
 	defer tdb.tearDown(t)
 
-	insertTestUser(t, tdb.UserStore)
+	fixtures.AddUser(tdb.Store, "test", "test", false)
 
 	app := fiber.New()
 
-	authHandler := NewAuthHandler(tdb.UserStore)
+	authHandler := NewAuthHandler(tdb.User)
 	app.Post("/authenticate", authHandler.HandleAuthenticate)
 
 	params := AuthParams{
