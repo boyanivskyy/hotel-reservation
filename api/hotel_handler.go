@@ -47,11 +47,7 @@ func (h *HotelHandler) HandleGetHotels(c *fiber.Ctx) error {
 
 func (h *HotelHandler) HandleGetHotel(c *fiber.Ctx) error {
 	id := c.Params("id")
-	oId, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return ErrorInvalidId()
-	}
-	hotel, err := h.store.Hotel.GetHotelById(c.Context(), oId)
+	hotel, err := h.store.Hotel.GetHotelById(c.Context(), id)
 	if err != nil {
 		return ErrorResourceNotFound()
 	}
