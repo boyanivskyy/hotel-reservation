@@ -11,9 +11,9 @@ import (
 
 type BookingStore interface {
 	InsertBooking(ctx context.Context, booking *types.Booking) (*types.Booking, error)
-	GetBookings(ctx context.Context, filter bson.M) ([]*types.Booking, error)
+	GetBookings(ctx context.Context, filter map[string]any) ([]*types.Booking, error)
 	GetBooking(ctx context.Context, bookingId string) (*types.Booking, error)
-	UpdateBooking(context.Context, string, bson.M) error
+	UpdateBooking(context.Context, string, map[string]any) error
 }
 
 type MongoBookingStore struct {
@@ -30,7 +30,7 @@ func NewMongoBookingStore(client *mongo.Client, dbName string) *MongoBookingStor
 	}
 }
 
-func (s *MongoBookingStore) UpdateBooking(ctx context.Context, bookingId string, update bson.M) error {
+func (s *MongoBookingStore) UpdateBooking(ctx context.Context, bookingId string, update map[string]any) error {
 	bookingOid, err := primitive.ObjectIDFromHex(bookingId)
 	if err != nil {
 		return err
@@ -53,7 +53,7 @@ func (s *MongoBookingStore) InsertBooking(ctx context.Context, booking *types.Bo
 	return booking, nil
 }
 
-func (s *MongoBookingStore) GetBookings(ctx context.Context, filter bson.M) ([]*types.Booking, error) {
+func (s *MongoBookingStore) GetBookings(ctx context.Context, filter map[string]any) ([]*types.Booking, error) {
 	curr, err := s.coll.Find(ctx, filter)
 	if err != nil {
 		return nil, err
