@@ -9,13 +9,12 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/boyanivskyy/hotel-reservation/db"
 	"github.com/boyanivskyy/hotel-reservation/db/fixtures"
 	"github.com/gofiber/fiber/v2"
 )
 
 func TestAuthenticateSuccess(t *testing.T) {
-	tdb := setup(t, db.TestDBNAME)
+	tdb := setup(t)
 	defer tdb.tearDown(t)
 
 	insertedUser := fixtures.AddUser(tdb.Store, "test", "test", false)
@@ -64,7 +63,7 @@ func TestAuthenticateSuccess(t *testing.T) {
 }
 
 func TestAuthenticationWithWrongPasswordFailure(t *testing.T) {
-	tdb := setup(t, db.TestDBNAME)
+	tdb := setup(t)
 	defer tdb.tearDown(t)
 
 	fixtures.AddUser(tdb.Store, "test", "test", false)
