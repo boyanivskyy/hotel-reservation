@@ -2,9 +2,12 @@ package api
 
 import (
 	"context"
+	"log"
+	"os"
 	"testing"
 
 	"github.com/boyanivskyy/hotel-reservation/db"
+	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -19,12 +22,18 @@ type testdb struct {
 }
 
 func (tdb testdb) tearDown(t *testing.T) {
-	if err := tdb.client.Database(db.TestDBNAME).Drop(context.TODO()); err != nil {
+	dbname := os.Getenv("MONGO_TEST_DBNAME")
+	if err := tdb.client.Database(dbname).Drop(context.TODO()); err != nil {
 		t.Fatal(err)
 	}
 }
 
-func setup(t *testing.T, dbname string) *testdb {
+func setup(t *testing.T) *testdb {
+	if err := godotenv.Load("../.env"); err != nil {
+		log.Fatal(err)
+	}
+
+	dbname := os.Getenv("MONGO_TEST_DBNAME")
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(testMongoUri))
 	if err != nil {
 		return nil

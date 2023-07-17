@@ -7,13 +7,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/boyanivskyy/hotel-reservation/db"
 	"github.com/boyanivskyy/hotel-reservation/types"
 	"github.com/gofiber/fiber/v2"
 )
 
 func Test_HandlePostUser(t *testing.T) {
-	tdb := setup(t, db.TestDBNAME)
+	tdb := setup(t)
 	defer tdb.tearDown(t)
 
 	app := fiber.New(fiber.Config{

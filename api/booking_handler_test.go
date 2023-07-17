@@ -8,14 +8,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/boyanivskyy/hotel-reservation/db"
 	"github.com/boyanivskyy/hotel-reservation/db/fixtures"
 	"github.com/boyanivskyy/hotel-reservation/types"
 	"github.com/gofiber/fiber/v2"
 )
 
 func TestUserGetBooking(t *testing.T) {
-	db := setup(t, db.TestDBNAME)
+	db := setup(t)
 	defer db.tearDown(t)
 
 	var (
@@ -68,7 +67,7 @@ func TestUserGetBooking(t *testing.T) {
 }
 
 func TestAdminGetBookings(t *testing.T) {
-	db := setup(t, db.TestDBNAME)
+	db := setup(t)
 	defer db.tearDown(t)
 
 	var (

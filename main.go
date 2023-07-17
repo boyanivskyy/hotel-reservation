@@ -2,35 +2,40 @@ package main
 
 import (
 	"context"
-	"flag"
 	"log"
+	"os"
 
 	"github.com/boyanivskyy/hotel-reservation/api"
 	"github.com/boyanivskyy/hotel-reservation/db"
 	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+// Configuration
+// 1. MongoDB endpoint
+// 2. ListenAddress of our http server
+// 3. JWT secret
+// 4. mongoDBname = hotel-reservation
 
 var fiberConfig = fiber.Config{
 	ErrorHandler: api.ErrorHandler,
 }
 
 func main() {
-	// flag means when you run go run main.go you can add --listenAddr
-	listenAddr := flag.String("listenAddr", ":8080", "The listen address of the API server")
-	flag.Parse()
-
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(db.DBURI))
+	mongoEndpoint := os.Getenv("MONGO_URI")
+	mongoDBName := os.Getenv("MONGO_DBNAME")
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(mongoEndpoint))
 	if err != nil {
 		log.Fatal(err)
 	}
 	// stores list
 	var (
-		userStore    = db.NewMongoUserStore(client, db.DBNAME)
-		hotelStore   = db.NewMongoHotelStore(client, db.DBNAME)
-		roomStore    = db.NewMongoRoomStore(client, hotelStore, db.DBNAME)
-		bookingStore = db.NewMongoBookingStore(client, db.DBNAME)
+		userStore    = db.NewMongoUserStore(client, mongoDBName)
+		hotelStore   = db.NewMongoHotelStore(client, mongoDBName)
+		roomStore    = db.NewMongoRoomStore(client, hotelStore, mongoDBName)
+		bookingStore = db.NewMongoBookingStore(client, mongoDBName)
 		store        = &db.Store{
 			User:    userStore,
 			Hotel:   hotelStore,
@@ -79,5 +84,12 @@ func main() {
 	// admin handlers
 	admin.Get("/booking", bookingHandler.HandleGetBookings)
 
-	log.Fatal(app.Listen(*listenAddr))
+	listenAddr := os.Getenv("HTTP_LISTEN_ADDRESS")
+	log.Fatal(app.Listen(listenAddr))
+}
+
+func init() {
+	if err := godotenv.Load(); err != nil {
+		log.Fatalf("unable to load .env: %s", err)
+	}
 }
