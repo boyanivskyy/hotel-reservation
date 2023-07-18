@@ -1,4 +1,4 @@
-FROM golang:go1.19.5
+FROM golang:1.20.3-alpine
 
 # set the working directory to /app
 WORKDIR /app
@@ -16,7 +16,7 @@ COPY . .
 RUN go build -o main .
 
 # Expose port specified by the PORT environment variable
-EXPOSE 3000
+EXPOSE 8080
 
 # Set the entry point of the container to the executable
 CMD ["./main"]
